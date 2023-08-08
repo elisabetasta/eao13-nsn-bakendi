@@ -2,9 +2,9 @@ import { v2 as cloudinary } from 'cloudinary';
 
 // Configuration
 cloudinary.config({
-  cloud_name: 'dyuygwggo',
-  api_key: '335864646356278',
-  api_secret: 'HN_XVhUYxyLucnP37wen8lZCCR4',
+  cloud_name: 'dfi1texxu',
+  api_key: '622343622888624',
+  api_secret: 'Uy8Jby3iPwnhs4G09WKsnCa4duU',
 });
 
 // Upload
