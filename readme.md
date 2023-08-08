@@ -4,6 +4,4 @@
 
 - Elísabet Ásta Ólafsdóttir [eao13@hi.is](mailto:eao13@hi.is)
 
-### Vinsamlegast takið tillit til þess sem stendur í NOTICE.md skránni
-
-
+### Vinsamlegast takið tillit til [settra reglna](NOTICE.md)
