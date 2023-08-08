@@ -1,0 +1,8 @@
+{
+  "type": "module",
+  "devDependencies": {
+    "@types/node-fetch": "^2.6.2",
+    "@types/passport": "^1.0.12",
+    "@types/passport-jwt": "^3.0.8"
+  }
+}
