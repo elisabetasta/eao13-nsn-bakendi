@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json());
 app.use(router);
 
-const port = 3000;
+const port = 3017;
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}/`);

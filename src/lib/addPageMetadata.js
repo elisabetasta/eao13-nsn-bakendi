@@ -4,7 +4,7 @@
 import { toPositiveNumberOrDefault } from "./toPositiveNumberOrDefault.js";
 
 const {
-  PORT: port = 3000,
+  PORT: port = 3017,
   HOST: host = "127.0.0.1",
   BASE_URL: baseUrl = "",
 } = process.env;

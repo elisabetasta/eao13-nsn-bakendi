@@ -7,6 +7,8 @@ import xss from 'xss';
 import { QueryTypes, query } from '../lib/db.js';
 import { jwtOptions, tokenOptions } from '../lib/passport.js';
 
+const SALT_ROUNDS = 12;
+
 
 dotenv.config();
 
@@ -116,6 +118,7 @@ export async function registerRoute(req: Request, res: Response) {
 
 }
 
+// !!!!! ATH hér þarf að gera salt og hash í pw
 /**
  * Býr til nýja User
  * @param name nafn notanda
@@ -125,16 +128,17 @@ export async function registerRoute(req: Request, res: Response) {
  * @returns Skilar nýjum notanda ef hægt var að búa til
  */
 export async function createUser(name: string, username: string, password: string, admin: boolean) {
-  const hashedPassword = await bcrypt.hash(password, 11);
+  const saltedPassword = await bcrypt.genSalt(SALT_ROUNDS)
+  const hashedPassword = await bcrypt.hash(password, saltedPassword);
 
   const q = `
       INSERT INTO
-        users (name, username, password, admin)
+        users (name, username, saltedPassword, hashPassword, admin)
       VALUES
         ($1, $2, $3, $4)
       RETURNING *`;
 
-  const values = [xss(name), xss(username), hashedPassword, admin];
+  const values = [xss(name), xss(username), saltedPassword, hashedPassword, admin];
   const result = await query(q, values);
 
   if (result) {
