@@ -41,9 +41,13 @@ export type QueryTypes = User | Event | Speaker | Registration;
 
 export async function query(q: string, values: Array<QueryInput> = []) {
   let client;
+  console.log("í query í db.ts")
   try {
+    console.log("í try í query")
     client = await pool.connect();
+    console.log("Pool er: ", pool)
   } catch (e) {
+    console.log("í error í query")
     console.error('unable to get client from pool', e);
     return null;
   }

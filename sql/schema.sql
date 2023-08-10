@@ -2,8 +2,7 @@ CREATE TABLE public.users (
   id SERIAL PRIMARY KEY,
   name VARCHAR(64) NOT NULL,
   username VARCHAR(64) UNIQUE NOT NULL,
-  password_salt VARCHAR(256) NOT NULL,
-  password_hash VARCHAR(256) NOT NULL,
+  password VARCHAR(256) NOT NULL,
   admin BOOLEAN DEFAULT false,
   created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp
 );

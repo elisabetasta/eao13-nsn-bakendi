@@ -129,18 +129,20 @@ export async function registerRoute(req: Request, res: Response) {
  */
 export async function createUser(name: string, username: string, password: string, admin: boolean) {
   const saltedPassword = await bcrypt.genSalt(SALT_ROUNDS)
+  // console.log(saltedPassword)
   const hashedPassword = await bcrypt.hash(password, saltedPassword);
 
   const q = `
       INSERT INTO
-        users (name, username, saltedPassword, hashPassword, admin)
+        users (name, username, password, admin)
       VALUES
         ($1, $2, $3, $4)
       RETURNING *`;
 
-  const values = [xss(name), xss(username), saltedPassword, hashedPassword, admin];
+  const values = [xss(name), xss(username), hashedPassword, admin];
+  // console.log("values eru: ", values)
   const result = await query(q, values);
-
+  console.log("Result í user.ts: ", result)
   if (result) {
     return result.rows[0];
   }
