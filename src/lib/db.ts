@@ -3,10 +3,17 @@ import { readFile } from 'fs/promises';
 
 import pg, { QueryResult } from 'pg';
 // import { Event } from '../routes/event.js';
-import { Speaker } from '../routes/speaker.js';
 
 import { User } from '../routes/user.js';
-import { Event, Registration } from '../types.js';
+// import { Event, Registration } from '../types.js';
+import {
+  Child,
+  Incident,
+  IncidentFeedback,
+  UserGroup,
+  UserType,
+  UserTypeValue
+} from '../types.js';
 import { toPositiveNumberOrDefault } from './toPositiveNumberOrDefault.js';
 dotenv.config();
 
@@ -14,6 +21,7 @@ const SCHEMA_FILE = './sql/schema.sql';
 const DROP_SCHEMA_FILE = './sql/drop.sql';
 
 export async function createSchema(schemaFile = SCHEMA_FILE) {
+  console.log("ER Í CREATE SCHEMA Í DB.TS")
   const data = await readFile(schemaFile);
 
   return query(data.toString('utf-8'));
@@ -37,7 +45,7 @@ pool.on('error', (err: Error) => {
 });
 
 export type QueryInput = string | number | boolean | undefined;
-export type QueryTypes = User | Event | Speaker | Registration;
+export type QueryTypes = User | UserType | UserTypeValue | UserGroup | Child | Incident | IncidentFeedback;
 
 export async function query(q: string, values: Array<QueryInput> = []) {
   let client;
@@ -45,7 +53,7 @@ export async function query(q: string, values: Array<QueryInput> = []) {
   try {
     console.log("í try í query")
     client = await pool.connect();
-    console.log("Pool er: ", pool)
+    // console.log("Pool er: ", pool)
   } catch (e) {
     console.log("í error í query")
     console.error('unable to get client from pool', e);
@@ -67,7 +75,7 @@ export async function pagedQuery(
   sqlQuery: string,
   values: Array<QueryInput> = [],
   { offset = 0, limit = 10 } = {}
-): Promise<QueryResult<QueryTypes> | null> {
+): Promise<QueryResult<Incident> | null> {
   const sqlLimit = values.length + 1;
   const sqlOffset = values.length + 2;
   const q = `${sqlQuery} LIMIT $${sqlLimit} OFFSET $${sqlOffset}`;
@@ -110,7 +118,7 @@ export async function pagedQueryEvent(
   const result = await query(q, combinedValues);
   // console.log("hahaha", result.rows)
   if (!result) {
-    console.log('hahahappp', result);
+    console.log('hahahappp');
     return null;
   }
 

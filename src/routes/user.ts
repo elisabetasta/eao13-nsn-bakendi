@@ -4,7 +4,7 @@ import { Request, Response } from 'express';
 import jwt from "jsonwebtoken";
 import { QueryResult } from "pg";
 import xss from 'xss';
-import { QueryTypes, query } from '../lib/db.js';
+import { query } from '../lib/db.js';
 import { jwtOptions, tokenOptions } from '../lib/passport.js';
 
 const SALT_ROUNDS = 12;
@@ -54,7 +54,7 @@ export function userMapper(input: unknown | null,): User | null {
  * @param input QueryResult með mögulegum User-um
  * @returns Skilar tómufylki eða fylki sem inniheldur User.
  */
-export function mapOfUsersToUsers(input: QueryResult<QueryTypes> | null): Array<User> {
+export function mapOfUsersToUsers(input: QueryResult<User> | null): Array<User> {
   if (!input) {
     return []
   }
