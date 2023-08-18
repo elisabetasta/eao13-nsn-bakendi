@@ -41,69 +41,60 @@
 
 // types.ts
 
-// User Types
-interface UserType {
-  id: number;
-  type: UserTypeValue;
+// Define enums
+enum UserType {
+  Parent = 'parent',
+  Caregiver = 'caregiver',
+  PhysicalTherapist = 'physical therapist',
+  SpeechTherapist = 'speech therapist',
+  Driver = 'driver',
 }
 
-type UserTypeValue =
-  'parent' |
-  'caregiver' |
-  'physical therapist' |
-  'speech therapist' |
-  'driver';
-
-// User Groups
-interface UserGroup {
-  id: number;
-  child_id: number;
-  user_id: number;
+enum IncidentFeedback {
+  Good = 'good',
+  Neutral = 'neutral',
+  Bad = 'bad',
 }
 
-// Children
-interface Child {
+// Define table types
+interface UserTypes {
   id: number;
-  name: string;
-  group_id?: number;
+  type: UserType;
 }
 
-// Incidents
-interface Incident {
-  id: number;
-  title: string;
-  slug: string;
-  description: string;
-  feedback?: IncidentFeedback;
-  child_id?: number;
-  user_id?: number;
-  created: Date;
-  updated: Date;
-}
-
-type IncidentFeedback =
-  'good' |
-  'neutral' |
-  'bad';
-
-// Users
-interface User {
+interface Users {
   id: number;
   name: string;
   username: string;
   password: string;
   admin: boolean;
   type: UserType;
-  created: Date;
+  created: string;
 }
 
-export {
-  Child,
-  Incident,
-  IncidentFeedback,
-  User,
-  UserGroup,
-  UserType,
-  UserTypeValue
-};
+interface Incident {
+  id: number;
+  title: string;
+  slug: string;
+  description: string;
+  feedback: IncidentFeedback;
+  child_id: number;
+  user_id: number;
+  created: string;
+  updated: string;
+}
+
+interface Children {
+  id: number;
+  name: string;
+  group_id: number | null;
+}
+
+interface UserGroups {
+  id: number;
+  child_id: number;
+  user_id: number;
+}
+
+export { Children, Incident, IncidentFeedback, UserGroups, UserType, UserTypes, Users };
 
