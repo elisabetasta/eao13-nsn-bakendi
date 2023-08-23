@@ -1,22 +1,34 @@
 -- Insert user types
-INSERT INTO public.userTypes (type) VALUES
-('parent'),
-('caregiver'),
-('physical therapist'),
-('speech therapist'),
-('driver');
+-- INSERT INTO public.userTypes (type) VALUES
+-- ('parent'),
+-- ('caregiver'),
+-- ('physical therapist'),
+-- ('speech therapist'),
+-- ('driver');
+
+INSERT INTO UserTypeReference (type_name) VALUES ('parent');
+INSERT INTO UserTypeReference (type_name) VALUES ('caregiver');
+INSERT INTO UserTypeReference (type_name) VALUES ('physical therapist');
+INSERT INTO UserTypeReference (type_name) VALUES ('speech therapist');
+INSERT INTO UserTypeReference (type_name) VALUES ('therapist');
+INSERT INTO UserTypeReference (type_name) VALUES ('driver');
+
+INSERT INTO incidentFeedbackReference (feedback) VALUES ('good');
+INSERT INTO incidentFeedbackReference (feedback) VALUES ('neutral');
+INSERT INTO incidentFeedbackReference (feedback) VALUES ('bad');
+
 
 -- Insert users
-INSERT INTO public.users (name, username, password, admin, type)
+INSERT INTO public.user (name, username, password, admin, user_type_id)
 VALUES
-('John Doe', 'john@example.com', 'password123', true, 'parent'),
-('Jane Smith', 'jane@example.com', 'letmein', false, 'caregiver'),
-('Alex Johnson', 'alex@example.com', 'securepass', false, 'driver'),
-('Emma Brown', 'emma@example.com', '123456', false, 'speech therapist'),
-('Michael Davis', 'michael@example.com', 'password', false, 'physical therapist');
+('John Doe', 'john@example.com', 'password123', true, 1),
+('Jane Smith', 'jane@example.com', 'letmein', false, 2),
+('Alex Johnson', 'alex@example.com', 'securepass', false, 3),
+('Emma Brown', 'emma@example.com', '123456', false, 4),
+('Michael Davis', 'michael@example.com', 'password', false, 5);
 
--- Insert children
-INSERT INTO public.children (name) VALUES
+-- Insert child
+INSERT INTO public.child (name) VALUES
 ('Child A'),
 ('Child B'),
 ('Child C');
@@ -32,20 +44,20 @@ INSERT INTO public.userGroups (child_id, user_id) VALUES
 -- SET user_id = 2 -- user_id of the user to add to a group
 -- WHERE child_id = 1; -- child_id of the child in the group
 
--- Update group_id in children table based on userGroups
+-- Update group_id in child table based on userGroups
 -- þetta þarf að keyra eftir að insert á userGroups er keyrt
-UPDATE public.children AS c
+UPDATE public.child AS c
 SET group_id = ug.id
 FROM public.userGroups AS ug
 WHERE c.id = ug.child_id;
 
 -- Insert incidents
-INSERT INTO public.incident (title, slug, description, feedback, child_id, user_id)
+INSERT INTO public.incident (title, slug, description, feedback_id, child_id, user_id)
 VALUES
-('Incident 1', 'incident-1', 'Description of incident 1', 'bad', 1, 2),
-('Incident 2', 'incident-2', 'Description of incident 2', 'neutral', 1, 1),
-('Incident 3', 'incident-3', 'Description of incident 3', 'good', 2, 3),
-('Incident 4', 'incident-4', 'Description of incident 4', 'bad', 3, 2);
+('Incident 1', 'incident-1', 'Description of incident 1', 3, 1, 2),
+('Incident 2', 'incident-2', 'Description of incident 2', 2, 1, 1),
+('Incident 3', 'incident-3', 'Description of incident 3', 1, 2, 3),
+('Incident 4', 'incident-4', 'Description of incident 4', 3, 3, 2);
 
 
 

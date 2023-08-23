@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { body, query, validationResult } from 'express-validator';
-import { findBySlug } from '../routes/event.js';
+import { findByIncidentSlug } from '../routes/incident.js';
 import { findByUsername } from '../routes/user.js';
 
 export function validationCheck(req: Request, res: Response, next: NextFunction) {
@@ -55,15 +55,15 @@ export const registerValidation = [
   }),
 ];
 
-export const eventValidation = [
+export const incidentValidation = [
   body('title')
-    .isLength({ min: 1, max: 128 })
-    .withMessage('title is required, max 128 characters'),
+    .isLength({ min: 1, max: 64 })
+    .withMessage('title is required, max 64 characters'),
   body('description')
-    .isLength({ min: 1, max: 256 })
-    .withMessage('description is required, max 256 characters'),
+    .isLength({ min: 1, max: 1000 })
+    .withMessage('description is required, max 1000 characters'),
   body('slug').custom(async (slug) => {
-    const event = await findBySlug(slug); // find by slug ætti að kalla á
+    const event = await findByIncidentSlug(slug); // find by slug ætti að kalla á
     if (event) {
       return Promise.reject(new Error('event already exists'));
     }

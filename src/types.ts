@@ -62,7 +62,7 @@ interface UserTypes {
   type: UserType;
 }
 
-interface Users {
+interface User {
   id: number;
   name: string;
   username: string;
@@ -84,7 +84,7 @@ interface Incident {
   updated: string;
 }
 
-interface Children {
+interface Child {
   id: number;
   name: string;
   group_id: number | null;
@@ -96,5 +96,5 @@ interface UserGroups {
   user_id: number;
 }
 
-export { Children, Incident, IncidentFeedback, UserGroups, UserType, UserTypes, Users };
+export { Child, Incident, IncidentFeedback, User, UserGroups, UserType, UserTypes };
 

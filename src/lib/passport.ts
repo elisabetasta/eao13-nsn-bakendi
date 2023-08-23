@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import passport from 'passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { findById, User } from '../routes/user.js';
+import { findById } from '../routes/user.js';
+import { User } from '../types.js';
 
 const { JWT_SECRET: jwtSecret, TOKEN_LIFETIME: tokenLifetime = '3600' } = process.env;
 
@@ -73,10 +74,10 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
       return res.status(401).json({ error });
     }
 
-    if (!user.admin) {
-      const error = 'insufficient authorization';
-      return res.status(401).json({ error });
-    }
+    // if (!user.admin) {
+    //   const error = 'insufficient authorization';
+    //   return res.status(401).json({ error });
+    // }
 
     // Látum notanda vera aðgengilegan í rest af middlewares
     req.user = user;

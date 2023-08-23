@@ -3,30 +3,24 @@ import express, { Request, Response } from 'express';
 import { catchErrors } from '../lib/catchErorrs.js';
 import { requireAuthentication } from '../lib/passport.js';
 import {
-  eventValidation,
+  incidentValidation,
   pagingQuerystringValidator,
   validationCheck,
 } from '../lib/validations.js';
 import { withMulter } from '../lib/with-multer.js';
 import {
-  deleteEvent,
-  getEvent,
-  listEvents,
-  registerEvent,
-  updateEventHandler,
-} from './event.js';
+  createChild,
+  deleteChild,
+  getChild,
+  listChildren,
+} from './child.js';
 import {
-  deleteRegister,
-  getRegister,
-  listRegistrations,
-  registerUserMiddleware,
-} from './registration.js';
-import {
-  createSpeaker,
-  deleteSpeaker,
-  getSpeaker,
-  listSpeakers,
-} from './speaker.js';
+  deleteIncident,
+  getIncident,
+  listIncidents,
+  registerIncident,
+  updateIncidentHandler,
+} from './incident.js';
 import {
   currentUserRoute,
   listUsers,
@@ -49,28 +43,28 @@ router.use(cors({ origin: '*' }));
 export async function index(req: Request, res: Response) {
   return res.json({
     routes: {
-      events: {
-        href: '/events',
+      incidents: {
+        href: '/incidents',
         methods: ['GET'],
       },
-      event: {
-        href: '/events/:slug',
+      incident: {
+        href: '/incidents/:slug',
         methods: ['GET'],
       },
       registrations: {
-        href: '/events/:slug/registrations',
+        href: '/incidents/:slug/registrations',
         methods: ['GET', 'POST'],
       },
       registration: {
-        href: '/events/:slug/registrations/:id',
+        href: '/incidents/:slug/registrations/:id',
         methods: ['GET', 'DELETE'],
       },
-      speakers: {
-        href: '/events/:slug/speaker',
+      child: {
+        href: '/incidents/:slug/child',
         methods: ['GET'],
       },
-      speaker: {
-        href: '/events/:slug/speaker/:id',
+      child_id: {
+        href: '/incidents/:slug/child/:id',
         methods: ['GET'],
       },
 
@@ -84,28 +78,28 @@ export async function index(req: Request, res: Response) {
       },
     },
     adminRoutes: {
-      events: {
-        href: '/events',
+      incidents: {
+        href: '/incidents',
         methods: ['GET', 'POST'],
       },
-      event: {
-        href: '/events/:slug',
+      incident: {
+        href: '/incidents/:slug',
         methods: ['GET', 'PATCH', 'DELETE'],
       },
       registrations: {
-        href: '/events/:slug/registrations',
+        href: '/incidents/:slug/registrations',
         methods: ['GET', 'POST'],
       },
       registration: {
-        href: '/events/:slug/registrations/:id',
+        href: '/incidents/:slug/registrations/:id',
         methods: ['GET', 'DELETE'],
       },
-      speakers: {
-        href: '/events/:slug/speaker',
+      child: {
+        href: '/incidents/:slug/child',
         methods: ['GET', 'POST'],
       },
-      speaker: {
-        href: '/events/:slug/speaker/:id',
+      child_id: {
+        href: '/incidents/:slug/child/:id',
         methods: ['GET', 'DELETE'],
       },
       users: {
@@ -154,97 +148,76 @@ router.get('/users/:id', requireAuthentication, catchErrors(returnUser));
 
 // Staðfest - allir
 router.get(
-  '/events',
+  '/incidents',
   pagingQuerystringValidator,
   validationCheck,
-  catchErrors(listEvents)
+  catchErrors(listIncidents)
 );
 
 // Staðfest - allir
 router.get(
-  '/events/:slug',
+  '/incidents/:slug',
   pagingQuerystringValidator,
   validationCheck,
-  catchErrors(getEvent)
+  catchErrors(getIncident)
 );
 
 // Staðfest - bara admin
 router.delete(
-  '/events/:slug',
+  '/incidents/:slug',
   requireAuthentication,
   pagingQuerystringValidator,
   validationCheck,
-  catchErrors(deleteEvent)
+  catchErrors(deleteIncident)
 );
 
 // Staðfest - bara admin
 router.patch(
-  '/events/:slug',
+  '/incidents/:slug',
   requireAuthentication,
   pagingQuerystringValidator,
   validationCheck,
-  catchErrors(updateEventHandler)
+  catchErrors(updateIncidentHandler)
 );
 
 // Staðfest- bara admin
 router.post(
-  '/events',
+  '/incidents',
   requireAuthentication,
-  eventValidation,
+  incidentValidation,
   validationCheck,
-  catchErrors(registerEvent)
+  catchErrors(registerIncident)
 );
 
 // Staðfest - allir
 router.get(
-  '/events/:slug/speaker',
+  '/incidents/:slug/child',
   pagingQuerystringValidator,
   validationCheck,
-  catchErrors(listSpeakers)
+  catchErrors(listChildren)
 );
 
 // Staðfest - only admin
 router.post(
-  '/events/:slug/speaker',
+  '/incidents/:slug/child',
   requireAuthentication,
   withMulter,
   requireAuthentication,
-  catchErrors(createSpeaker)
+  catchErrors(createChild)
 );
 
 // Staðfest - only admin
 router.get(
-  '/events/:slug/speaker/:id',
+  '/incidents/:slug/child/:id',
   requireAuthentication,
   validationCheck,
-  catchErrors(getSpeaker)
+  catchErrors(getChild)
 );
 
 // Staðfest - only admin
 router.delete(
-  '/events/:slug/speaker/:id',
+  '/incidents/:slug/child/:id',
   requireAuthentication,
-  catchErrors(deleteSpeaker)
+  catchErrors(deleteChild)
 );
 
-// Staðfest - allir
-router.get('/events/:slug/registrations', catchErrors(listRegistrations));
-
-// Fá aðra til að staðfesta, sá sem er loggaður inn
-router.post(
-  '/events/:slug/registrations',
-  // registerValidation,
-  requireAuthentication,
-  validationCheck,
-  catchErrors(registerUserMiddleware)
-);
-
-// Fá aðra til að staðfesta, allir
-router.get('/events/:slug/registrations/:id', catchErrors(getRegister));
-
-// Fá aðra til að staðfesta, only admin
-router.delete(
-  '/events/:slug/registrations/:id',
-  requireAuthentication,
-  catchErrors(deleteRegister)
-);

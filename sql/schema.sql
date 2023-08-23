@@ -1,49 +1,70 @@
 -- First, create the enums and userTypes table
-CREATE TYPE userType AS ENUM (
-  'parent',
-  'caregiver',
-  'physical therapist',
-  'speech therapist',
-  'driver'
-);
+-- CREATE TYPE userType AS ENUM (
+--   'parent',
+--   'caregiver',
+--   'physical therapist',
+--   'speech therapist',
+--   'driver'
+-- );
 
-CREATE TYPE incidentFeedback AS ENUM (
-  'good',
-  'neutral',
-  'bad'
-);
+-- CREATE TYPE incidentFeedback AS ENUM (
+--   'good',
+--   'neutral',
+--   'bad'
+-- );
 
-CREATE TABLE public.userTypes (
+-- to select only the enums:
+-- SELECT unnest(enum_range(NULL::incidentFeedback))::text;
+-- til að setja inn nýtt:
+-- ALTER TYPE incidentFeedback ADD VALUE 'neutral';
+
+CREATE TABLE UserTypeReference (
   id SERIAL PRIMARY KEY,
-  type userType
+  type_name VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE incidentFeedbackReference (
+  id SERIAL PRIMARY KEY,
+  feedback VARCHAR(50) NOT NULL
 );
 
 -- Next, create the users table which references userTypes
-CREATE TABLE public.users (
+-- ef þarf að breyta userType, þá er það gert í UserTypeReference töflu
+CREATE TABLE public.user (
   id SERIAL PRIMARY KEY,
   name VARCHAR(64) NOT NULL,
   username VARCHAR(64) UNIQUE NOT NULL,
   password VARCHAR(256) NOT NULL,
   admin BOOLEAN DEFAULT false,
-  type userType,
+  user_type_id INTEGER REFERENCES UserTypeReference(id),
   created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp
 );
 
--- Then, create the incident table which references children and users
+-- Then, create the incident table which references child and users
+-- til að selecta id, title, description og feedback með texta:
+-- SELECT
+--     i.id,
+--     i.title,
+--     i.description,
+--     ifr.feedback
+-- FROM
+--     Incident i
+-- JOIN
+--     IncidentFeedbackReference ifr ON i.feedback_id = ifr.id;
 CREATE TABLE public.incident (
   id SERIAL PRIMARY KEY,
-  title VARCHAR(64) NOT NULL UNIQUE,
-  slug VARCHAR(64) NOT NULL UNIQUE,
+  title VARCHAR(64) NOT NULL,
+  slug VARCHAR(64) NOT NULL,
   description VARCHAR(1000) DEFAULT '',
-  feedback incidentFeedback,
+  feedback_id INTEGER REFERENCES incidentFeedbackReference(id),
   child_id INTEGER,
   user_id INTEGER,
   created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Next, create the children and userGroups tables
-CREATE TABLE public.children (
+-- Next, create the child and userGroups tables
+CREATE TABLE public.child (
   id SERIAL PRIMARY KEY,
   name VARCHAR(128) NOT NULL,
   group_id INTEGER UNIQUE
@@ -51,28 +72,29 @@ CREATE TABLE public.children (
 
 CREATE TABLE public.userGroups (
   id SERIAL PRIMARY KEY,
-  child_id INTEGER,
-  user_id INTEGER,
-
-  CONSTRAINT unique_child_user_pair UNIQUE (child_id, user_id)
+  child_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL
 );
+
+CREATE UNIQUE INDEX unique_child_user_pair
+    ON userGroups (child_id, user_id);
 
 
 -- Finally, add foreign key constraints
 ALTER TABLE public.incident
-  ADD CONSTRAINT fk_incident_child FOREIGN KEY (child_id) REFERENCES public.children(id);
+  ADD CONSTRAINT fk_incident_child FOREIGN KEY (child_id) REFERENCES public.child(id);
 
 ALTER TABLE public.incident
-  ADD CONSTRAINT fk_incident_user FOREIGN KEY (user_id) REFERENCES public.users(id);
+  ADD CONSTRAINT fk_incident_user FOREIGN KEY (user_id) REFERENCES public.user(id);
 
-ALTER TABLE public.children
+ALTER TABLE public.child
   ADD CONSTRAINT fk_child_group FOREIGN KEY (group_id) REFERENCES public.userGroups(id);
 
 ALTER TABLE public.userGroups
-  ADD CONSTRAINT fk_group_child FOREIGN KEY (child_id) REFERENCES public.children(id);
+  ADD CONSTRAINT fk_group_child FOREIGN KEY (child_id) REFERENCES public.child(id);
 
 ALTER TABLE public.userGroups
-  ADD CONSTRAINT fk_group_user FOREIGN KEY (user_id) REFERENCES public.users(id);
+  ADD CONSTRAINT fk_group_user FOREIGN KEY (user_id) REFERENCES public.user(id);
 
 
 

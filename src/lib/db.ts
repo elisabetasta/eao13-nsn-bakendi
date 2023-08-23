@@ -2,17 +2,16 @@ import dotenv from 'dotenv';
 import { readFile } from 'fs/promises';
 
 import pg, { QueryResult } from 'pg';
-// import { Event } from '../routes/event.js';
+// import { Incident } from '../routes/event.js';
 
-import { User } from '../routes/user.js';
-// import { Event, Registration } from '../types.js';
+// import { Incident, Registration } from '../types.js';
 import {
   Child,
   Incident,
-  IncidentFeedback,
-  UserGroup,
+  User,
+  UserGroups,
   UserType,
-  UserTypeValue
+  UserTypes
 } from '../types.js';
 import { toPositiveNumberOrDefault } from './toPositiveNumberOrDefault.js';
 dotenv.config();
@@ -45,7 +44,14 @@ pool.on('error', (err: Error) => {
 });
 
 export type QueryInput = string | number | boolean | undefined;
-export type QueryTypes = User | UserType | UserTypeValue | UserGroup | Child | Incident | IncidentFeedback;
+export type QueryTypes =
+  | Child
+  | Incident
+  | UserGroups
+  | UserType
+  | UserTypes
+  | User;
+
 
 export async function query(q: string, values: Array<QueryInput> = []) {
   let client;
@@ -101,11 +107,11 @@ export async function pagedQuery(
   };
 }
 
-export async function pagedQueryEvent(
+export async function pagedQueryIncident(
   sqlQuery: string,
   values: Array<QueryInput> = [],
   { offset = 0, limit = 10 } = {}
-): Promise<QueryResult<Event> | null> {
+): Promise<QueryResult<Incident> | null> {
   const sqlLimit = values.length + 1;
   const sqlOffset = values.length + 2;
   const q = `${sqlQuery} LIMIT $${sqlLimit} OFFSET $${sqlOffset}`;
@@ -135,8 +141,9 @@ export async function end() {
   await pool.end();
 }
 
-export async function getEventBySlug(slug: string) {
-  const q = 'SELECT * FROM events WHERE slug = $1';
+// Update the function getIncidentBySlug
+export async function getIncidentBySlug(slug: string) {
+  const q = 'SELECT * FROM incidents WHERE slug = $1';
 
   const result = await query(q, [slug]);
 
@@ -147,9 +154,10 @@ export async function getEventBySlug(slug: string) {
   return false;
 }
 
-export async function deleteEventBySlug(slug: string): Promise<boolean> {
+// Update the function deleteIncidentBySlug
+export async function deleteIncidentBySlug(slug: string): Promise<boolean> {
   console.log('slug', slug);
-  const result = await query('DELETE FROM events WHERE slug = $1', [slug]);
+  const result = await query('DELETE FROM incidents WHERE slug = $1', [slug]);
   console.log('result 2', result);
 
   if (!result) {
@@ -159,8 +167,9 @@ export async function deleteEventBySlug(slug: string): Promise<boolean> {
   return result.rowCount === 1;
 }
 
+
 export async function conditionalUpdate(
-  table: 'events',
+  table: 'incident',
   id: number,
   fields: Array<string | null>,
   values: Array<string | number | null>
@@ -197,11 +206,21 @@ export async function conditionalUpdate(
   return result;
 }
 
-export async function findEventById(
+export async function findIncidentById(
   id: number
 ) {
   const q = 'SELECT * FROM events WHERE id = $1';
 
+  const result = await query(q, [id]);
+
+  if (result && result.rowCount === 1) {
+    return result.rows[0];
+  }
+  return false;
+}
+
+export async function getChildById(id: number) {
+  const q = 'SELECT * FROM child WHERE id = $1';
   const result = await query(q, [id]);
 
   if (result && result.rowCount === 1) {

@@ -6,6 +6,7 @@ import { QueryResult } from "pg";
 import xss from 'xss';
 import { query } from '../lib/db.js';
 import { jwtOptions, tokenOptions } from '../lib/passport.js';
+import { User } from '../types.js';
 
 const SALT_ROUNDS = 12;
 
@@ -13,13 +14,13 @@ const SALT_ROUNDS = 12;
 dotenv.config();
 
 
-export type User = {
-  id: number,
-  name: string,
-  username: string,
-  password: string,
-  admin: boolean | undefined
-}
+// export type User = {
+//   id: number,
+//   name: string,
+//   username: string,
+//   password: string,
+//   admin: boolean | undefined
+// }
 
 /**
  * Skoðar hvort hægt sé að búa til user útfrá inputi
@@ -27,14 +28,21 @@ export type User = {
  * @returns Skilar null ef ekki er hægt að búa til user, en ef
  * hægt er að búa til, skilar hann user
  */
-export function userMapper(input: unknown | null,): User | null {
+export function userMapper(input: unknown | null): User | null {
   const potentialUser = input as Partial<User | null>;
 
-  if (!potentialUser ||
-    !potentialUser.id ||
-    !potentialUser.name ||
-    !potentialUser.username ||
-    !potentialUser.password) {
+  console.log("Potential user:", potentialUser);
+
+  if (
+    potentialUser?.id === undefined ||
+    potentialUser?.name === undefined ||
+    potentialUser?.username === undefined ||
+    potentialUser?.password === undefined ||
+    potentialUser?.admin === undefined ||
+    potentialUser?.type === undefined ||
+    potentialUser?.created === undefined
+  ) {
+    console.log("User mapping failed due to missing properties:", potentialUser);
     return null;
   }
 
@@ -44,10 +52,14 @@ export function userMapper(input: unknown | null,): User | null {
     username: potentialUser.username,
     password: potentialUser.password,
     admin: potentialUser.admin,
-  }
+    type: potentialUser.type,
+    created: potentialUser.created,
+  };
 
   return user;
 }
+
+
 
 /**
  * Mappar í gegnum mögulegu nýju user-a sem verið er að ná í
@@ -56,12 +68,23 @@ export function userMapper(input: unknown | null,): User | null {
  */
 export function mapOfUsersToUsers(input: QueryResult<User> | null): Array<User> {
   if (!input) {
-    return []
+    return [];
   }
 
-  const mappedUser = input?.rows.map(userMapper);
-  return mappedUser.filter((i): i is User => Boolean(i));
+  const mappedUsers = input.rows.map((row) => {
+    console.log("Mapping user row:", row);
+    const mappedUser = userMapper(row);
+    console.log("Mapped user:", mappedUser);
+    return mappedUser;
+  });
+
+  const filteredUsers = mappedUsers.filter((user): user is User => Boolean(user));
+
+  console.log("Filtered users:", filteredUsers);
+
+  return filteredUsers;
 }
+
 
 // GET: '/user'
 
@@ -72,20 +95,24 @@ export function mapOfUsersToUsers(input: QueryResult<User> | null): Array<User> 
  * @returns Skilar lista af User-um inni á ákveðnu bili, sem passa innan page-ing
  */
 export async function listUsers(req: Request, res: Response) {
+  try {
+    console.log("Entering listUsers in user.ts");
 
-  const usersResult = await query(`SELECT *
-      FROM users `, []
-  );
+    const usersResult = await query(`SELECT * FROM "user"`);
 
+    console.log("Users result:", usersResult);
 
-  const users = mapOfUsersToUsers(usersResult);
+    const users = mapOfUsersToUsers(usersResult);
 
-  if (!users) {
-    return res.status(500).json({ error: 'unable to list users' });
+    console.log("Mapped users:", users);
+
+    return res.json(users);
+  } catch (error) {
+    console.error("Error listing users:", error);
+    return res.status(500).json({ error: 'Unable to list users' });
   }
-
-  return res.json(users);
 }
+
 
 
 // POST: '/users/register'
