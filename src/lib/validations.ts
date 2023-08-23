@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { body, query, validationResult } from 'express-validator';
 import { findByIncidentSlug } from '../routes/incident.js';
-import { findByUsername } from '../routes/user.js';
+import { findByTypeName, findByUsername } from '../routes/user.js';
 
 export function validationCheck(req: Request, res: Response, next: NextFunction) {
   const validation = validationResult(req);
@@ -83,3 +83,17 @@ export const pagingQuerystringValidator = [
     .isInt({ min: 1 })
     .withMessage('query parameter "limit" must be an int, larger than 0'),
 ];
+
+// ------------------------------------------
+export const userTypeReferenceValidator = [
+  body('type_name')
+    .isLength({ min: 1, max: 50 })
+    .withMessage('type_name is required, max 50 characters')
+    .custom(async (type_name) => {
+      const type = await findByTypeName(type_name);
+      if (type) {
+        return Promise.reject(new Error('type already exists'));
+      }
+      return Promise.resolve();
+    })
+]

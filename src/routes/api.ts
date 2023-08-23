@@ -5,6 +5,7 @@ import { requireAuthentication } from '../lib/passport.js';
 import {
   incidentValidation,
   pagingQuerystringValidator,
+  userTypeReferenceValidator,
   validationCheck,
 } from '../lib/validations.js';
 import { withMulter } from '../lib/with-multer.js';
@@ -23,10 +24,12 @@ import {
 } from './incident.js';
 import {
   currentUserRoute,
+  getUserTypeReference,
   listUsers,
   loginRoute,
+  postUserTypeReference,
   registerRoute,
-  returnUser,
+  returnUser
 } from './user.js';
 
 export const router = express.Router();
@@ -43,89 +46,78 @@ router.use(cors({ origin: '*' }));
 export async function index(req: Request, res: Response) {
   return res.json({
     routes: {
-      incidents: {
+      UserTypeReference: {
+        href: '/user-type-reference',
+        methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+      },
+      IncidentFeedbackReference: {
+        href: '/incident-feedback-reference',
+        methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+      },
+      User: {
+        href: '/users',
+        methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+      },
+      Incident: {
         href: '/incidents',
-        methods: ['GET'],
+        methods: ['GET', 'POST', 'PATCH', 'DELETE'],
       },
-      incident: {
-        href: '/incidents/:slug',
-        methods: ['GET'],
+      Child: {
+        href: '/children',
+        methods: ['GET', 'POST', 'PATCH', 'DELETE'],
       },
-      registrations: {
-        href: '/incidents/:slug/registrations',
-        methods: ['GET', 'POST'],
-      },
-      registration: {
-        href: '/incidents/:slug/registrations/:id',
-        methods: ['GET', 'DELETE'],
-      },
-      child: {
-        href: '/incidents/:slug/child',
-        methods: ['GET'],
-      },
-      child_id: {
-        href: '/incidents/:slug/child/:id',
-        methods: ['GET'],
-      },
-
-      register: {
-        href: '/users/register',
-        methods: ['POST'],
-      },
-      login: {
-        href: '/users/login',
-        methods: ['POST'],
+      UserGroups: {
+        href: '/user-groups',
+        methods: ['GET', 'POST', 'DELETE'],
       },
     },
     adminRoutes: {
-      incidents: {
-        href: '/incidents',
-        methods: ['GET', 'POST'],
+      UserTypeReference: {
+        href: '/admin/user-type-reference',
+        methods: ['POST', 'PATCH', 'DELETE'],
       },
-      incident: {
-        href: '/incidents/:slug',
-        methods: ['GET', 'PATCH', 'DELETE'],
+      IncidentFeedbackReference: {
+        href: '/admin/incident-feedback-reference',
+        methods: ['POST', 'PATCH', 'DELETE'],
       },
-      registrations: {
-        href: '/incidents/:slug/registrations',
-        methods: ['GET', 'POST'],
+      User: {
+        href: '/admin/users',
+        methods: ['POST', 'PATCH', 'DELETE'],
       },
-      registration: {
-        href: '/incidents/:slug/registrations/:id',
-        methods: ['GET', 'DELETE'],
+      Incident: {
+        href: '/admin/incidents',
+        methods: ['POST', 'PATCH', 'DELETE'],
       },
-      child: {
-        href: '/incidents/:slug/child',
-        methods: ['GET', 'POST'],
+      Child: {
+        href: '/admin/children',
+        methods: ['POST', 'PATCH', 'DELETE'],
       },
-      child_id: {
-        href: '/incidents/:slug/child/:id',
-        methods: ['GET', 'DELETE'],
-      },
-      users: {
-        href: '/users',
-        methods: ['GET'],
-      },
-      user: {
-        href: '/users/:userSlug',
-        methods: ['GET'],
-      },
-      register: {
-        href: '/users/register',
-        methods: ['POST'],
-      },
-      login: {
-        href: '/users/login',
-        methods: ['POST'],
+      UserGroups: {
+        href: '/admin/user-groups',
+        methods: ['POST', 'DELETE'],
       },
     },
   });
 }
 
-// Staðfest - allir
+
 router.get('/', index);
 
-// Staðfest - bara admin
+
+router.get(
+  '/user-type-reference',
+  catchErrors(getUserTypeReference)
+);
+
+router.post(
+  '/user-type-reference',
+  userTypeReferenceValidator,
+  validationCheck,
+  catchErrors(postUserTypeReference)
+);
+
+// ------------------------------------------
+
 // nota paging með t.d. users?limit=2&offset=1
 router.get(
   '/users',
@@ -134,19 +126,16 @@ router.get(
   catchErrors(listUsers)
 );
 
-// Staðfest - allir
 router.post('/users/login', catchErrors(loginRoute));
 
-// Staðfest - allir
 router.post('/users/register', validationCheck, catchErrors(registerRoute));
 
-// Staðfest - Sa sem er loggadur inn
 router.get('/users/me', requireAuthentication, catchErrors(currentUserRoute));
 
-// Staðfest - allir
+
 router.get('/users/:id', requireAuthentication, catchErrors(returnUser));
 
-// Staðfest - allir
+
 router.get(
   '/incidents',
   pagingQuerystringValidator,
@@ -154,7 +143,7 @@ router.get(
   catchErrors(listIncidents)
 );
 
-// Staðfest - allir
+
 router.get(
   '/incidents/:slug',
   pagingQuerystringValidator,
@@ -162,7 +151,7 @@ router.get(
   catchErrors(getIncident)
 );
 
-// Staðfest - bara admin
+
 router.delete(
   '/incidents/:slug',
   requireAuthentication,
@@ -171,7 +160,7 @@ router.delete(
   catchErrors(deleteIncident)
 );
 
-// Staðfest - bara admin
+
 router.patch(
   '/incidents/:slug',
   requireAuthentication,
@@ -180,7 +169,7 @@ router.patch(
   catchErrors(updateIncidentHandler)
 );
 
-// Staðfest- bara admin
+
 router.post(
   '/incidents',
   requireAuthentication,
@@ -189,7 +178,7 @@ router.post(
   catchErrors(registerIncident)
 );
 
-// Staðfest - allir
+
 router.get(
   '/incidents/:slug/child',
   pagingQuerystringValidator,
@@ -197,7 +186,7 @@ router.get(
   catchErrors(listChildren)
 );
 
-// Staðfest - only admin
+
 router.post(
   '/incidents/:slug/child',
   requireAuthentication,
@@ -206,7 +195,7 @@ router.post(
   catchErrors(createChild)
 );
 
-// Staðfest - only admin
+
 router.get(
   '/incidents/:slug/child/:id',
   requireAuthentication,
@@ -214,7 +203,7 @@ router.get(
   catchErrors(getChild)
 );
 
-// Staðfest - only admin
+
 router.delete(
   '/incidents/:slug/child/:id',
   requireAuthentication,

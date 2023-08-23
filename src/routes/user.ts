@@ -333,3 +333,56 @@ export async function isAdmin(userid: number) {
   }
   else if (result?.rows[0].admin === false) return false;
 }
+
+
+// ------------------------------------------------------
+
+export async function getUserTypeReference(req: Request, res: Response) {
+  const q = 'SELECT * FROM UserTypeReference';
+
+  try {
+    const result = await query(q, []);
+
+    if (result) {
+      const userTypeReferences = result.rows;
+      return res.status(200).json(userTypeReferences);
+    } else {
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  } catch (error) {
+    console.error('Error fetching user type references:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+
+export async function postUserTypeReference(req: Request, res: Response) {
+  const { type_name } = req.body;
+  const q = 'INSERT INTO UserTypeReference (type_name) VALUES ($1) RETURNING *';
+
+  try {
+    const result = await query(q, [type_name]);
+
+    if (result) {
+      const userTypeReferences = result.rows;
+      return res.status(200).json(userTypeReferences);
+    } else {
+      return res.status(500).json({ error: 'Internal server error' });
+    }
+  } catch (error) {
+    console.error('Error inserting user type reference:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+export async function findByTypeName(type_name: string) {
+  const q = 'SELECT * FROM usertypereference WHERE type_name = $1';
+
+  const result = await query(q, [type_name]);
+
+  if (result && result.rowCount === 1) {
+    return result.rows[0];
+  }
+
+  return false;
+}

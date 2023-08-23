@@ -20,12 +20,12 @@
 
 CREATE TABLE UserTypeReference (
   id SERIAL PRIMARY KEY,
-  type_name VARCHAR(50) NOT NULL
+  type_name VARCHAR(50) UNIQUE NOT NULL
 );
 
 CREATE TABLE incidentFeedbackReference (
   id SERIAL PRIMARY KEY,
-  feedback VARCHAR(50) NOT NULL
+  feedback VARCHAR(50) UNIQUE NOT NULL
 );
 
 -- Next, create the users table which references userTypes
