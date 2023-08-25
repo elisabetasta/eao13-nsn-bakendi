@@ -105,13 +105,13 @@ router.get('/', index);
 
 // sækja týpur af notendum
 router.get(
-  '/user-type-reference',
+  '/usertypes',
   catchErrors(getUserTypeReference)
 );
 
 // búa til nýja týpu af notendum
 router.post(
-  '/user-type-reference',
+  '/usertypes',
   userTypeReferenceValidator,
   validationCheck,
   catchErrors(postUserTypeReference)
