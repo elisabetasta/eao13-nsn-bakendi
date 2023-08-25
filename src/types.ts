@@ -68,7 +68,7 @@ interface User {
   username: string;
   password: string;
   admin: boolean;
-  type: UserType;
+  user_type_id: number;
   created: string;
 }
 

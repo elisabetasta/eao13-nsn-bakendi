@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { findById } from '../routes/user.js';
 import { User } from '../types.js';
 
-const { JWT_SECRET: jwtSecret, TOKEN_LIFETIME: tokenLifetime = '3600' } = process.env;
+const { JWT_SECRET: jwtSecret, TOKEN_LIFETIME: tokenLifetime = '3600' } = process.env; // lifir í 1klst
 
 if (!jwtSecret) {
   console.error('Vantar .env gildi');

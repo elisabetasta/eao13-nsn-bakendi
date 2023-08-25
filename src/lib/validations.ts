@@ -74,15 +74,20 @@ export const incidentValidation = [
 
 
 export const pagingQuerystringValidator = [
+  (req: Request, res: Response, next: NextFunction) => {
+    console.log('Query parameters:', req.query);
+    next();
+  },
   query('offset')
     .optional()
     .isInt({ min: 0 })
-    .withMessage('query parameter "offset" must be an int, 0 or larget'),
+    .withMessage('query parameter "offset" must be an int, 0 or larger'),
   query('limit')
     .optional()
     .isInt({ min: 1 })
     .withMessage('query parameter "limit" must be an int, larger than 0'),
 ];
+
 
 // ------------------------------------------
 export const userTypeReferenceValidator = [

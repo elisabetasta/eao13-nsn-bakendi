@@ -28,7 +28,7 @@ import {
   listUsers,
   loginRoute,
   postUserTypeReference,
-  registerRoute,
+  registerUser,
   returnUser
 } from './user.js';
 
@@ -103,12 +103,13 @@ export async function index(req: Request, res: Response) {
 
 router.get('/', index);
 
-
+// sækja týpur af notendum
 router.get(
   '/user-type-reference',
   catchErrors(getUserTypeReference)
 );
 
+// búa til nýja týpu af notendum
 router.post(
   '/user-type-reference',
   userTypeReferenceValidator,
@@ -116,19 +117,35 @@ router.post(
   catchErrors(postUserTypeReference)
 );
 
-// ------------------------------------------
-
-// nota paging með t.d. users?limit=2&offset=1
+// sækja alla notendur
+// TODO: þarf að gera bara fyrir admin
 router.get(
   '/users',
-  pagingQuerystringValidator,
   validationCheck,
   catchErrors(listUsers)
 );
 
+// búa til notanda
+// TODO: bara aðgengilegt í gegnum "sign-up síðu"
+router.post(
+  '/users',
+  validationCheck,
+  catchErrors(registerUser)
+)
+
+// ------------------------------------------
+
+// nota paging með t.d. users?limit=2&offset=1
+// router.get(
+//   '/users',
+//   pagingQuerystringValidator,
+//   validationCheck,
+//   catchErrors(listUsers)
+// );
+
 router.post('/users/login', catchErrors(loginRoute));
 
-router.post('/users/register', validationCheck, catchErrors(registerRoute));
+// router.post('/users/register', validationCheck, catchErrors(registerRoute));
 
 router.get('/users/me', requireAuthentication, catchErrors(currentUserRoute));
 

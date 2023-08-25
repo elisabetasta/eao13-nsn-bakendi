@@ -14,14 +14,6 @@ const SALT_ROUNDS = 12;
 dotenv.config();
 
 
-// export type User = {
-//   id: number,
-//   name: string,
-//   username: string,
-//   password: string,
-//   admin: boolean | undefined
-// }
-
 /**
  * Skoðar hvort hægt sé að búa til user útfrá inputi
  * @param input Inniheldur upplýsingum um mögulean user
@@ -39,7 +31,7 @@ export function userMapper(input: unknown | null): User | null {
     potentialUser?.username === undefined ||
     potentialUser?.password === undefined ||
     potentialUser?.admin === undefined ||
-    potentialUser?.type === undefined ||
+    potentialUser?.user_type_id === undefined ||
     potentialUser?.created === undefined
   ) {
     console.log("User mapping failed due to missing properties:", potentialUser);
@@ -52,7 +44,7 @@ export function userMapper(input: unknown | null): User | null {
     username: potentialUser.username,
     password: potentialUser.password,
     admin: potentialUser.admin,
-    type: potentialUser.type,
+    user_type_id: potentialUser.user_type_id,
     created: potentialUser.created,
   };
 
@@ -100,11 +92,7 @@ export async function listUsers(req: Request, res: Response) {
 
     const usersResult = await query(`SELECT * FROM "user"`);
 
-    console.log("Users result:", usersResult);
-
     const users = mapOfUsersToUsers(usersResult);
-
-    console.log("Mapped users:", users);
 
     return res.json(users);
   } catch (error) {
@@ -112,6 +100,8 @@ export async function listUsers(req: Request, res: Response) {
     return res.status(500).json({ error: 'Unable to list users' });
   }
 }
+
+
 
 
 
@@ -124,10 +114,12 @@ export async function listUsers(req: Request, res: Response) {
  * @param res Response
  * @returns Skilar nýjum User
  */
-export async function registerRoute(req: Request, res: Response) {
-  const { name, username, password = '', admin = false } = req.body;
+export async function registerUser(req: Request, res: Response) {
+  const { name, username, password = '', admin = false, user_type_id } = req.body;
 
-  const result = await createUser(name, username, password, admin);
+  console.log("reqqq", req.body)
+
+  const result = await createUser(name, username, password, admin, user_type_id);
 
   if (!result) {
     return res.status(500).json({ error: 'unable to create user' });
@@ -154,22 +146,22 @@ export async function registerRoute(req: Request, res: Response) {
  * @param admin hvort hann sé admin eða ekki
  * @returns Skilar nýjum notanda ef hægt var að búa til
  */
-export async function createUser(name: string, username: string, password: string, admin: boolean) {
+export async function createUser(name: string, username: string, password: string, admin: boolean, user_type_id: number) {
   const saltedPassword = await bcrypt.genSalt(SALT_ROUNDS)
   // console.log(saltedPassword)
   const hashedPassword = await bcrypt.hash(password, saltedPassword);
 
   const q = `
       INSERT INTO
-        users (name, username, password, admin)
+        "user" (name, username, password, admin, user_type_id)
       VALUES
-        ($1, $2, $3, $4)
+        ($1, $2, $3, $4, $5)
       RETURNING *`;
 
-  const values = [xss(name), xss(username), hashedPassword, admin];
+  const values = [xss(name), xss(username), hashedPassword, admin, user_type_id];
   // console.log("values eru: ", values)
   const result = await query(q, values);
-  console.log("Result í user.ts: ", result)
+  // console.log("Result í user.ts: ", result)
   if (result) {
     return result.rows[0];
   }
