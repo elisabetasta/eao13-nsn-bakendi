@@ -139,9 +139,21 @@ export async function end() {
 
 // Update the function getIncidentBySlug
 export async function getIncidentBySlug(slug: string) {
-  const q = 'SELECT * FROM incidents WHERE slug = $1';
+  const q = 'SELECT * FROM incident WHERE slug = $1';
 
   const result = await query(q, [slug]);
+
+  if (result && result.rowCount === 1) {
+    return result.rows[0];
+  }
+
+  return false;
+}
+
+export async function getIncidentById(id: string) {
+  const q = 'SELECT * FROM incident WHERE id = $1';
+
+  const result = await query(q, [id]);
 
   if (result && result.rowCount === 1) {
     return result.rows[0];
@@ -153,7 +165,7 @@ export async function getIncidentBySlug(slug: string) {
 // Update the function deleteIncidentBySlug
 export async function deleteIncidentBySlug(slug: string): Promise<boolean> {
   console.log('slug', slug);
-  const result = await query('DELETE FROM incidents WHERE slug = $1', [slug]);
+  const result = await query('DELETE FROM incident WHERE slug = $1', [slug]);
   console.log('result 2', result);
 
   if (!result) {

@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import { body, query, validationResult } from 'express-validator';
-import { findByIncidentSlug } from '../routes/incident.js';
 import { findByTypeName, findByUsername } from '../routes/user.js';
 
 export function validationCheck(req: Request, res: Response, next: NextFunction) {
@@ -62,13 +61,13 @@ export const incidentValidation = [
   body('description')
     .isLength({ min: 1, max: 1000 })
     .withMessage('description is required, max 1000 characters'),
-  body('slug').custom(async (slug) => {
-    const event = await findByIncidentSlug(slug); // find by slug ætti að kalla á
-    if (event) {
-      return Promise.reject(new Error('event already exists'));
-    }
-    return Promise.resolve();
-  }),
+  // body('slug').custom(async (slug) => {
+  //   const event = await findByIncidentSlug(slug); // find by slug ætti að kalla á
+  //   if (event) {
+  //     return Promise.reject(new Error('event already exists'));
+  //   }
+  //   return Promise.resolve();
+  // }),
 ];
 
 
@@ -102,3 +101,17 @@ export const userTypeReferenceValidator = [
       return Promise.resolve();
     })
 ]
+
+
+
+
+// // Middleware to check if a token is revoked
+// export function checkRevokedToken(req: Request, res: Response, next: NextFunction) {
+//   console.log("Er í validation revoke token")
+//   const token = req.headers.authorization?.split(' ')[1]; // Extract token from Authorization header
+//   console.log("tokenið er: ", token)
+//   if (token && revokedTokens.includes(token)) {
+//     return res.status(401).json({ error: 'Token revoked. Please log in again.' });
+//   }
+//   next();
+// }

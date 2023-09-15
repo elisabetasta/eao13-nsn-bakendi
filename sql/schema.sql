@@ -54,11 +54,11 @@ CREATE TABLE public.user (
 CREATE TABLE public.incident (
   id SERIAL PRIMARY KEY,
   title VARCHAR(64) NOT NULL,
-  slug VARCHAR(64) NOT NULL,
+  slug VARCHAR(64),
   description VARCHAR(1000) DEFAULT '',
   feedback_id INTEGER REFERENCES incidentFeedbackReference(id),
-  child_id INTEGER,
-  user_id INTEGER,
+  child_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
   created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -101,34 +101,4 @@ ALTER TABLE public.userGroups
 
 --------------------------------------------------------------------------
 
--- CREATE TABLE public.events (
---   id SERIAL PRIMARY KEY,
---   title VARCHAR(64) UNIQUE NOT NULL,
---   slug VARCHAR(64) UNIQUE NOT NULL,
---   description TEXT,
---   created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
---   updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
---   creatorId INTEGER NOT NULL,
---   CONSTRAINT fk_creatorId FOREIGN KEY (creatorId) REFERENCES users (id)
--- );
 
--- CREATE TABLE public.registrations (
---   id SERIAL PRIMARY KEY,
---   eventid INTEGER NOT NULL,
---   userId INTEGER NOT NULL,
---   created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
---   CONSTRAINT fk_event FOREIGN KEY (eventid) REFERENCES events (id),
---   CONSTRAINT fk_userId FOREIGN KEY (userId) REFERENCES users (id),
---   UNIQUE (eventid, userId)
--- );
-
--- CREATE TABLE public.speaker (
---   id SERIAL PRIMARY KEY,
---   firstName VARCHAR(64) NOT NULL,
---   middleName VARCHAR(64),
---   lastName VARCHAR(64) NOT NULL,
---   imageUrl  VARCHAR(128) DEFAULT NULL,
---   eventId INTEGER NOT NULL,
---   created TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
---   CONSTRAINT fk_eventId FOREIGN KEY (eventId) REFERENCES events (id)
--- )

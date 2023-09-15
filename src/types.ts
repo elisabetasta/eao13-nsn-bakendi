@@ -72,12 +72,17 @@ interface User {
   created: string;
 }
 
+interface IncidentFeedbacks {
+  id: number;
+  feedback: IncidentFeedback;
+}
+
 interface Incident {
   id: number;
   title: string;
   slug: string;
   description: string;
-  feedback: IncidentFeedback;
+  feedback_id: number;
   child_id: number;
   user_id: number;
   created: string;
@@ -96,5 +101,5 @@ interface UserGroups {
   user_id: number;
 }
 
-export { Child, Incident, IncidentFeedback, User, UserGroups, UserType, UserTypes };
+export { Child, Incident, IncidentFeedback, IncidentFeedbacks, User, UserGroups, UserType, UserTypes };
 

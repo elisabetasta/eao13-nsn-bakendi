@@ -10,16 +10,10 @@ import { User } from '../types.js';
 
 const SALT_ROUNDS = 12;
 
-
 dotenv.config();
 
+const jwtSecret = process.env.JWT_SECRET as string;
 
-/**
- * Skoðar hvort hægt sé að búa til user útfrá inputi
- * @param input Inniheldur upplýsingum um mögulean user
- * @returns Skilar null ef ekki er hægt að búa til user, en ef
- * hægt er að búa til, skilar hann user
- */
 export function userMapper(input: unknown | null): User | null {
   const potentialUser = input as Partial<User | null>;
 
@@ -51,13 +45,6 @@ export function userMapper(input: unknown | null): User | null {
   return user;
 }
 
-
-
-/**
- * Mappar í gegnum mögulegu nýju user-a sem verið er að ná í
- * @param input QueryResult með mögulegum User-um
- * @returns Skilar tómufylki eða fylki sem inniheldur User.
- */
 export function mapOfUsersToUsers(input: QueryResult<User> | null): Array<User> {
   if (!input) {
     return [];
@@ -77,15 +64,6 @@ export function mapOfUsersToUsers(input: QueryResult<User> | null): Array<User> 
   return filteredUsers;
 }
 
-
-// GET: '/user'
-
-/**
- * Finnur alla User sem til eru og skilar lista með þeim
- * @param req Request
- * @param res Response
- * @returns Skilar lista af User-um inni á ákveðnu bili, sem passa innan page-ing
- */
 export async function listUsers(req: Request, res: Response) {
   try {
     console.log("Entering listUsers in user.ts");
@@ -101,23 +79,12 @@ export async function listUsers(req: Request, res: Response) {
   }
 }
 
-
-
-
-
-// POST: '/users/register'
-
-/**
- * Tekur inn upplsýingar sem Request inniheldur og býr til user ef hægt,
- * sendir villumeldingu ef villa kemur annars upplýsingum um notnada
- * @param req Request
- * @param res Response
- * @returns Skilar nýjum User
- */
 export async function registerUser(req: Request, res: Response) {
+  console.log(`jwtSecret: ${jwtSecret}`);
+
   const { name, username, password = '', admin = false, user_type_id } = req.body;
 
-  console.log("reqqq", req.body)
+  console.log("reqqq", req.body);
 
   const result = await createUser(name, username, password, admin, user_type_id);
 
@@ -127,41 +94,32 @@ export async function registerUser(req: Request, res: Response) {
 
   delete result.password;
 
+  // const token = jwt.sign({ userId: user.id, admin: user.admin }, secret, { expiresIn: '1h' });
+
   const payload = { id: result.id };
-  const token = jwt.sign(payload, jwtOptions.secretOrKey, tokenOptions);
+  const token = jwt.sign(payload, jwtSecret, tokenOptions);
   return res.json({
     result,
     token,
     expiresIn: tokenOptions.expiresIn,
   });
-
 }
 
-// !!!!! ATH hér þarf að gera salt og hash í pw
-/**
- * Býr til nýja User
- * @param name nafn notanda
- * @param username notendanafn notanda
- * @param password lykilorð notanda
- * @param admin hvort hann sé admin eða ekki
- * @returns Skilar nýjum notanda ef hægt var að búa til
- */
 export async function createUser(name: string, username: string, password: string, admin: boolean, user_type_id: number) {
-  const saltedPassword = await bcrypt.genSalt(SALT_ROUNDS)
-  // console.log(saltedPassword)
+  const saltedPassword = await bcrypt.genSalt(SALT_ROUNDS);
   const hashedPassword = await bcrypt.hash(password, saltedPassword);
 
   const q = `
-      INSERT INTO
-        "user" (name, username, password, admin, user_type_id)
-      VALUES
-        ($1, $2, $3, $4, $5)
-      RETURNING *`;
+    INSERT INTO
+      "user" (name, username, password, admin, user_type_id)
+    VALUES
+      ($1, $2, $3, $4, $5)
+    RETURNING *`;
 
   const values = [xss(name), xss(username), hashedPassword, admin, user_type_id];
-  // console.log("values eru: ", values)
+
   const result = await query(q, values);
-  // console.log("Result í user.ts: ", result)
+
   if (result) {
     return result.rows[0];
   }
@@ -177,17 +135,6 @@ export async function comparePasswords(password: string, hash: string) {
   return result;
 }
 
-
-// POST: '/users/login'
-
-/**
- * Logar einstakling inn, skoðar hvort notandi sé til
- * ef ekki sendir villumeldingu, en notandi er til skilar hann
- * notenda upplýsingum um einstakling
- * @param req Request
- * @param res Response
- * @returns Skilar notanda ef einstaklingur er til, annars villumeldingu
- */
 export async function loginRoute(req: Request, res: Response) {
   const { username, password = '' } = req.body;
   const user = await findByUsername(username);
@@ -213,42 +160,87 @@ export async function loginRoute(req: Request, res: Response) {
 }
 
 
-// GET: '/users/me'
+// export async function loginRoute(req: Request, res: Response) {
+//   const { username, password = '' } = req.body;
+//   const user = await findByUsername(username);
 
-/**
- * Finnur hvaða notandi er skráður inn
- * @param req  Request
- * @param res Response
- * @returns Skilar þeim notanda sem er logaður inn
- */
-export async function currentUserRoute(req: Request, res: Response) {
-  const { user } = req;
+//   if (!user) {
+//     return res.status(401).json({ error: 'Invalid user/password' });
+//   }
 
-  const userById = await findById(Number(user))
+//   const passwordIsCorrect = await comparePasswords(password, user.password);
 
-  if (!userById) {
-    return res.status(404).json({ error: 'User not found' });
-  }
+//   if (passwordIsCorrect) {
+//     const payload = { id: user.id };
+//     const token = jwt.sign(payload, jwtOptions.secretOrKey, tokenOptions);
+//     console.log("user ", user.name, " has been logged in and this is the user object: ", user);
 
-  delete userById.password;
+//     delete user.password;
 
-  return res.json(userById);
-}
+//     return res.json({
+//       user,
+//       token,
+//       expiresIn: tokenOptions.expiresIn,
+//     });
 
-// GET: '/users/:id'
+//   }
 
-/**
- * FInnur þann notanda sem hefur þetta id og skilar honum ef hann er til,
- * annars 404 villumeldingu um að hann sé Not Found
- * @param req Request
- * @param res Response
- * @returns Skilar notandanum ef til annars villumeldingu
- */
+//   return res.status(401).json({ error: 'Invalid user/password' });
+// }
+
+// export async function currentUserRoute(req: Request, res: Response) {
+//   // console.log("in currentUserRoute");
+//   // const authHeader = req.headers["authorization"];
+
+//   // if (!authHeader) {
+//   //   return res.status(401).json({ error: 'Authorization header missing' });
+//   // }
+
+//   // const token = authHeader.split(' ')[1];
+
+//   // if (!token) {
+//   //   return res.status(401).json({ error: 'Token not provided' });
+//   // }
+
+//   // jwt.verify(token, jwtSecret, async (err, user) => {
+//   //   if (err) {
+//   //     return res.status(403).json({ error: 'Token is not valid' });
+//   //   }
+
+//   //   const userId = (user as User).id; // Type assertion
+
+//   //   const userById = await findById(userId);
+
+//   //   if (!userById) {
+//   //     return res.status(404).json({ error: 'User not found' });
+//   //   }
+
+//   //   delete userById.password;
+
+//   //   return res.json(userById);
+//   // });
+//   const { id } = req.user as User;
+
+//   if (!id) {
+//     return res.status(400).json({ error: 'User id is missing' })
+//   }
+
+//   const user = await findById(id);
+
+//   if (!user) {
+//     return res.status(404).json({ error: 'User not found' });
+//   }
+
+//   delete user.password;
+
+//   return res.json(user);
+// }
+
 export async function returnUser(req: Request, res: Response) {
   const { user } = req;
   const { id } = req.params;
 
-  const userById = await findById(Number(user))
+  const userById = await findById(Number(user));
 
   if (!userById) {
     return res.status(404).json({ error: 'User not loggin' });
@@ -258,28 +250,41 @@ export async function returnUser(req: Request, res: Response) {
     return res.status(500).json({ error: 'unable to get user, only admins' });
   }
 
-
-  const findUser = await findById(Number(id))
+  const findUser = await findById(Number(id));
   if (!findUser) {
     return res.status(404).json({ error: 'User not found' });
   }
-
 
   delete findUser.password;
 
   return res.status(201).json(findUser);
 }
 
+export async function logoutRoute(req: Request, res: Response) {
+  console.log("er í logoutRoute");
+  const authHeader = req.headers["authorization"];
 
-// Query leitar föll
+  console.log("auth header er: ", authHeader);
 
-/**
- * Leitar af User sem hefur notendanafnið
- * @param username notendanafn notanda
- * @returns Skilar notanda ef notandi er til annars false
- */
+  if (authHeader) {
+    console.log("inni í authHeader if");
+    jwt.sign(authHeader, "", { expiresIn: 1 }, (logout, err) => {
+      if (logout) {
+        console.log("inni í logout if");
+        res.send({ msg: 'You have been logged out' });
+      } else {
+        console.log("inni í logout else");
+        res.send({ error: err });
+      }
+    });
+  } else {
+    console.log("inni í authHeader else");
+    res.status(400).json({ error: 'Authorization header is missing' });
+  }
+}
+
 export async function findByUsername(username: string) {
-  const q = 'SELECT * FROM users WHERE username = $1';
+  const q = 'SELECT * FROM "user" WHERE username = $1';
 
   const result = await query(q, [username]);
 
@@ -290,13 +295,9 @@ export async function findByUsername(username: string) {
   return false;
 }
 
-/**
- * Leitar af User með þetta id
- * @param id auðkennisnúmer notanda
- * @returns Skilar notanda ef notandi hefur þetta id, annars null
- */
 export async function findById(id: number) {
-  const q = 'SELECT * FROM users WHERE id = $1';
+  console.log("Er í findById í user.ts");
+  const q = 'SELECT * FROM "user" WHERE id = $1';
 
   const result = await query(q, [id]);
 
@@ -309,14 +310,9 @@ export async function findById(id: number) {
   return null;
 }
 
-/**
- * Athugar ef user með id userid er admin
- * @param userid id þess notanda sem verið er að athuga
- * @returns true ef notandi er admin, annars false
- */
 export async function isAdmin(userid: number) {
   console.log(userid);
-  const q = `SELECT admin FROM users where id = $1`;
+  const q = `SELECT admin FROM "user" where id = $1`;
   const result = await query(q, [userid]);
   console.log('result', result);
   console.log(result?.rows[0].admin);
@@ -325,9 +321,6 @@ export async function isAdmin(userid: number) {
   }
   else if (result?.rows[0].admin === false) return false;
 }
-
-
-// ------------------------------------------------------
 
 export async function getUserTypeReference(req: Request, res: Response) {
   const q = 'SELECT * FROM UserTypeReference';
@@ -347,9 +340,15 @@ export async function getUserTypeReference(req: Request, res: Response) {
   }
 }
 
-
 export async function postUserTypeReference(req: Request, res: Response) {
+  console.log("er í postusertypereference");
   const { type_name } = req.body;
+  const { user } = req;
+
+  if (!(await isAdmin(Number(user)))) {
+    return res.status(500).json({ error: 'Unable to create user type, only admins' });
+  }
+
   const q = 'INSERT INTO UserTypeReference (type_name) VALUES ($1) RETURNING *';
 
   try {
@@ -378,3 +377,22 @@ export async function findByTypeName(type_name: string) {
 
   return false;
 }
+
+export default {
+  userMapper,
+  mapOfUsersToUsers,
+  listUsers,
+  registerUser,
+  createUser,
+  comparePasswords,
+  loginRoute,
+  // currentUserRoute,
+  returnUser,
+  logoutRoute,
+  findByUsername,
+  findById,
+  isAdmin,
+  getUserTypeReference,
+  postUserTypeReference,
+  findByTypeName,
+};

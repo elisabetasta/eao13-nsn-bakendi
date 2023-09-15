@@ -4,6 +4,7 @@ import { QueryResult } from 'pg';
 import {
   conditionalUpdate,
   deleteIncidentBySlug,
+  getIncidentById,
   getIncidentBySlug,
   pagedQueryIncident,
   query
@@ -23,7 +24,7 @@ export function incidentMapper(input: unknown | null): Incident | null {
     !potentialIncident.title ||
     !potentialIncident.slug || // Is this meant to be here?
     !potentialIncident.description ||
-    !potentialIncident.feedback ||
+    !potentialIncident.feedback_id ||
     !potentialIncident.child_id ||
     !potentialIncident.user_id ||
     !potentialIncident.created ||
@@ -37,7 +38,7 @@ export function incidentMapper(input: unknown | null): Incident | null {
     title: potentialIncident.title,
     slug: potentialIncident.slug,
     description: potentialIncident.description,
-    feedback: potentialIncident.feedback,
+    feedback_id: potentialIncident.feedback_id,
     child_id: potentialIncident.child_id,
     user_id: potentialIncident.user_id,
     created: potentialIncident.created,
@@ -62,7 +63,7 @@ export async function listIncidents(req: Request, res: Response) {
   const limit = 10;
 
   const incidentResult = await pagedQueryIncident(
-    `SELECT * FROM incidents ORDER BY id ASC`,
+    `SELECT * FROM incident ORDER BY id ASC`,
     [],
     { offset, limit }
   );
@@ -77,11 +78,16 @@ export async function listIncidents(req: Request, res: Response) {
 }
 
 export async function registerIncident(req: Request, res: Response) {
-  const { title, description } = req.body;
+  const { title, description, feedback_id, child_id, user_id } = req.body;
+  // console.log("parameters for POST: ", title, " ", description)
 
-  const { user } = req;
+  // leyfa almennan user
+  // sækja id
+  // skrá id á user_id á atvikinu
+  // const { user } = req;
+  // console.log("User í registerIncident: ", user)
 
-  const result = await createIncident(title, description, Number(user));
+  const result = await createIncident(title, description, Number(feedback_id), Number(child_id), Number(user_id));
   if (result === null) {
     return res
       .status(500)
@@ -93,22 +99,24 @@ export async function registerIncident(req: Request, res: Response) {
 export async function createIncident(
   title: string,
   description: string,
-  creatorid: number
+  feedback_id: number,
+  child_id: number,
+  user_id: number
 ) {
   const q = `
   INSERT INTO
-    incidents (title, slug, description, creatorId)
+    incident (title, slug, description, feedback_id, child_id, user_id)
   VALUES
-    ($1, $2, $3, $4)
+    ($1, $2, $3, $4, $5, $6)
   RETURNING *
   `;
 
-  const values = [title, slugify(title), description, creatorid];
-  if ((await isAdmin(creatorid)) === false) {
-    console.log('I am not an admin ;D');
-    console.warn('Only admin users can create incidents');
-    return null;
-  }
+  const values = [title, slugify(title), description, feedback_id, child_id, user_id];
+  // if ((await isAdmin(user_id)) === false) {
+  //   console.log('I am not an admin ;D');
+  //   console.warn('Only admin users can create incidents');
+  //   return null;
+  // }
 
   const result = await query(q, values);
   if (result) {
@@ -120,7 +128,7 @@ export async function createIncident(
 }
 
 export async function findByIncidentSlug(slug: string) {
-  const q = 'SELECT * FROM incidents WHERE slug = $1';
+  const q = 'SELECT * FROM incident WHERE slug = $1';
 
   const result = await query(q, [slug]);
 
@@ -131,7 +139,7 @@ export async function findByIncidentSlug(slug: string) {
   return false;
 }
 
-export async function getIncident(
+export async function getIncidentSlug(
   req: Request,
   res: Response,
   next: NextFunction
@@ -141,6 +149,23 @@ export async function getIncident(
   const incident = await getIncidentBySlug(slug);
 
   if (!incident) {
+    return next();
+  }
+
+  return res.json(incident);
+}
+
+export async function getIncidentId(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  const { id } = req.params;
+
+  const incident = await getIncidentById(id);
+
+  if (!incident) {
+    console.error("Incident not found for id: ", id);
     return next();
   }
 
