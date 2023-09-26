@@ -34,21 +34,21 @@ INSERT INTO public.child (name) VALUES
 ('Child C');
 
 -- Insert user groups
-INSERT INTO public.userGroups (child_id, user_id) VALUES
+INSERT INTO public.userGroup (child_id, user_id) VALUES
 (1, 2),
 (1, 3),
 (2, 2);
 
 -- -- update user_id to add users to a group
--- UPDATE public.userGroups
+-- UPDATE public.userGroup
 -- SET user_id = 2 -- user_id of the user to add to a group
 -- WHERE child_id = 1; -- child_id of the child in the group
 
--- Update group_id in child table based on userGroups
--- þetta þarf að keyra eftir að insert á userGroups er keyrt
+-- Update group_id in child table based on userGroup
+-- þetta þarf að keyra eftir að insert á userGroup er keyrt
 UPDATE public.child AS c
 SET group_id = ug.id
-FROM public.userGroups AS ug
+FROM public.userGroup AS ug
 WHERE c.id = ug.child_id;
 
 -- Insert incidents

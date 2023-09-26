@@ -1,5 +1,5 @@
 -- Drop userGroups table first since it's referenced by children and users
-DROP TABLE IF EXISTS public.userGroups CASCADE;
+DROP TABLE IF EXISTS public.userGroup CASCADE;
 
 DROP TABLE IF EXISTS public.groupMemberships CASCADE;
 

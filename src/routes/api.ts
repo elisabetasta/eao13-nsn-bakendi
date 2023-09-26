@@ -36,6 +36,7 @@ import {
   registerUser,
   returnUser
 } from './user.js';
+import { listUserGroups, registerUserGroup } from './usergroup.js';
 
 export const router = express.Router();
 
@@ -248,6 +249,7 @@ router.post(
 router.get('/users/me', requireAdmin, catchErrors(currentUserRoute));
 
 
+
 router.get(
   '/users/inGroup',
   requireUserInGroup,
@@ -257,10 +259,23 @@ router.get(
 
 router.get('/users/:id', requireAuthentication, catchErrors(returnUser));
 
+// tengja barn (í hópi) og notanda saman
+router.post(
+  '/usergroup',
+  catchErrors(registerUserGroup)
+);
 
+// sækir allar tengingar barna og notenda
+router.get(
+  '/usergroup',
+  catchErrors(listUserGroups)
+);
 
-
-
+// sækir allar tengingar barns með child_id id
+router.get(
+  '/usergroup/:id',
+  catchErrors(listUserGroups)
+);
 
 
 

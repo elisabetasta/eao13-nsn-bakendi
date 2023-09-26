@@ -95,11 +95,14 @@ interface Child {
   group_id: number | null;
 }
 
-interface UserGroups {
+// mögulega bæta passwordi við svo að
+// auðveldara sé að stjórna hvaða
+// notendur fái aðgang
+interface UserGroup {
   id: number;
   child_id: number;
   user_id: number;
 }
 
-export { Child, Incident, IncidentFeedback, IncidentFeedbacks, User, UserGroups, UserType, UserTypes };
+export { Child, Incident, IncidentFeedback, IncidentFeedbacks, User, UserGroup, UserType, UserTypes };
 

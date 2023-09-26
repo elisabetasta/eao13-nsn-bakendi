@@ -9,7 +9,7 @@ import {
   Child,
   Incident,
   User,
-  UserGroups,
+  UserGroup,
   UserType,
   UserTypes
 } from '../types.js';
@@ -47,7 +47,7 @@ export type QueryInput = string | number | boolean | undefined;
 export type QueryTypes =
   | Child
   | Incident
-  | UserGroups
+  | UserGroup
   | UserType
   | UserTypes
   | User;

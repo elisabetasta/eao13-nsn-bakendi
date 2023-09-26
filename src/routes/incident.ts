@@ -79,19 +79,12 @@ export async function listIncidents(req: Request, res: Response) {
 
 export async function registerIncident(req: Request, res: Response) {
   const { title, description, feedback_id, child_id, user_id } = req.body;
-  // console.log("parameters for POST: ", title, " ", description)
-
-  // leyfa almennan user
-  // sækja id
-  // skrá id á user_id á atvikinu
-  // const { user } = req;
-  // console.log("User í registerIncident: ", user)
 
   const result = await createIncident(title, description, Number(feedback_id), Number(child_id), Number(user_id));
   if (result === null) {
     return res
       .status(500)
-      .json({ error: 'unable to create incident, only admins' });
+      .json({ error: 'unable to create incident' });
   }
   return res.status(201).json(result);
 }
@@ -112,11 +105,6 @@ export async function createIncident(
   `;
 
   const values = [title, slugify(title), description, feedback_id, child_id, user_id];
-  // if ((await isAdmin(user_id)) === false) {
-  //   console.log('I am not an admin ;D');
-  //   console.warn('Only admin users can create incidents');
-  //   return null;
-  // }
 
   const result = await query(q, values);
   if (result) {

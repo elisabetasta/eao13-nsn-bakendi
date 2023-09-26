@@ -32,7 +32,7 @@ CREATE TABLE incidentFeedbackReference (
 -- ef þarf að breyta userType, þá er það gert í UserTypeReference töflu
 CREATE TABLE public.user (
   id SERIAL PRIMARY KEY,
-  name VARCHAR(64) NOT NULL,
+  name VARCHAR(128) NOT NULL,
   username VARCHAR(64) UNIQUE NOT NULL,
   password VARCHAR(256) NOT NULL,
   admin BOOLEAN DEFAULT false,
@@ -63,21 +63,27 @@ CREATE TABLE public.incident (
   updated TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Next, create the child and userGroups tables
+-- Next, create the child and UserGroup tables
 CREATE TABLE public.child (
   id SERIAL PRIMARY KEY,
   name VARCHAR(128) NOT NULL,
   group_id INTEGER UNIQUE
 );
 
-CREATE TABLE public.userGroups (
+-- CREATE TABLE public.UserGroup (
+--   id SERIAL PRIMARY KEY,
+--   child_id INTEGER NOT NULL,
+--   user_id INTEGER NOT NULL -- profa að breyta þessu þannig barn geti verið í grúbbu eitt og sér
+-- );
+
+CREATE TABLE public.userGroup (
   id SERIAL PRIMARY KEY,
   child_id INTEGER NOT NULL,
-  user_id INTEGER NOT NULL
+  user_id INTEGER
 );
 
 CREATE UNIQUE INDEX unique_child_user_pair
-    ON userGroups (child_id, user_id);
+    ON UserGroup (child_id, user_id);
 
 
 -- Finally, add foreign key constraints
@@ -88,12 +94,12 @@ ALTER TABLE public.incident
   ADD CONSTRAINT fk_incident_user FOREIGN KEY (user_id) REFERENCES public.user(id);
 
 ALTER TABLE public.child
-  ADD CONSTRAINT fk_child_group FOREIGN KEY (group_id) REFERENCES public.userGroups(id);
+  ADD CONSTRAINT fk_child_group FOREIGN KEY (group_id) REFERENCES public.UserGroup(id);
 
-ALTER TABLE public.userGroups
+ALTER TABLE public.UserGroup
   ADD CONSTRAINT fk_group_child FOREIGN KEY (child_id) REFERENCES public.child(id);
 
-ALTER TABLE public.userGroups
+ALTER TABLE public.UserGroup
   ADD CONSTRAINT fk_group_user FOREIGN KEY (user_id) REFERENCES public.user(id);
 
 
